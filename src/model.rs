@@ -189,13 +189,14 @@ impl ApprovalRequest {
     /// by a `Test` caller. This is `capability`'s "no laundering into prod",
     /// enforced on the approval plane at the point of use.
     pub fn assert_environment(&self, expected: &Environment) -> Result<(), GraniteError> {
-        if &self.environment != expected {
-            return Err(GraniteError::EnvironmentMismatch {
+        // Delegates to capability's ONE canonical no-laundering guard (since
+        // capability v0.3.0), keeping this crate's `GraniteError` surface stable.
+        self.environment.ensure_matches(expected).map_err(|_| {
+            GraniteError::EnvironmentMismatch {
                 expected: expected.to_string(),
                 found: self.environment.to_string(),
-            });
-        }
-        Ok(())
+            }
+        })
     }
 }
 
